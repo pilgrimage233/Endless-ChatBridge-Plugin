@@ -1,0 +1,104 @@
+name: Dependency Update
+
+on:
+  schedule:
+    # 每周一早上8点检查依赖更新
+    - cron: '0 8 * * 1'
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  update-dependencies:
+    runs-on: ubuntu-latest
+    name: Update Dependencies
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Check for dependency updates
+        run: |
+          mvn versions:display-dependency-updates > dependency-updates.txt
+          mvn versions:display-plugin-updates > plugin-updates.txt
+
+      - name: Create issue for dependency updates
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            let depUpdates = '';
+            let pluginUpdates = '';
+            
+            try {
+              depUpdates = fs.readFileSync('dependency-updates.txt', 'utf8');
+              pluginUpdates = fs.readFileSync('plugin-updates.txt', 'utf8');
+            } catch (error) {
+              console.log('无法读取更新文件');
+              return;
+            }
+            
+            // 检查是否有更新
+            const hasDepUpdates = depUpdates.includes('The following dependencies in Dependencies have newer versions:');
+            const hasPluginUpdates = pluginUpdates.includes('The following plugin updates are available:');
+            
+            if (hasDepUpdates || hasPluginUpdates) {
+              const title = `🔄 依赖更新检查 - ${new Date().toISOString().split('T')[0]}`;
+              let body = '## 📦 依赖更新报告\n\n';
+            
+              if (hasDepUpdates) {
+                body += '### 依赖更新\n```\n' + depUpdates + '\n```\n\n';
+              }
+            
+              if (hasPluginUpdates) {
+                body += '### 插件更新\n```\n' + pluginUpdates + '\n```\n\n';
+              }
+            
+              body += '请检查这些更新并考虑升级到最新版本。\n\n';
+              body += '> 此问题由自动化工作流创建';
+            
+              // 检查是否已存在类似的issue
+              const issues = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                labels: 'dependencies'
+              });
+            
+              const existingIssue = issues.data.find(issue => 
+                issue.title.includes('依赖更新检查')
+              );
+            
+              if (existingIssue) {
+                // 更新现有issue
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: existingIssue.number,
+                  body: body
+                });
+              } else {
+                // 创建新issue
+                await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: title,
+                  body: body,
+                  labels: ['dependencies', 'maintenance']
+                });
+              }
+            }

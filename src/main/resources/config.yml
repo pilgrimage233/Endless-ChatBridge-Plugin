@@ -1,0 +1,42 @@
+# ChatBridge 插件配置文件
+# 版本: 2.0
+
+# API 配置
+api:
+  # API 接口地址
+  url: "http://localhost:8080/api/v1/pushMessage"
+  # 服务器ID（用于标识不同的Minecraft服务器）
+  server-id: "1"
+
+# 签名验证配置
+signature:
+  # 是否启用签名验证（建议生产环境启用）
+  enabled: true
+  # 签名密钥（必须与服务端配置的 app.secret-key 一致）
+  # 请使用复杂且唯一的密钥，不要使用默认值！
+  secret-key: "your-secret-key-here"
+
+# 网络配置
+network:
+  # 连接超时时间（秒）
+  connect-timeout: 10
+  # 请求超时时间（秒）
+  request-timeout: 30
+
+# 调试配置
+debug:
+  # 是否启用调试日志（开发环境可启用，生产环境建议关闭）
+  enabled: false
+
+# 权限配置说明：
+# chatbridge.reload - 重载配置权限
+# chatbridge.test - 测试消息权限
+# 
+# 在 permissions.yml 或权限插件中配置：
+# permissions:
+#   chatbridge.reload:
+#     description: "允许重载ChatBridge配置"
+#     default: op
+#   chatbridge.test:
+#     description: "允许发送测试消息"
+#     default: op

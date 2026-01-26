@@ -1,0 +1,43 @@
+name: ChatBridge
+version: 2.0.0
+main: cc.endmc.chatbridge.ChatBridgePlugin
+# 兼容更广泛的版本范围，支持三大插件核心
+api-version: 1.13
+author: Memory
+description: 将Minecraft聊天消息转发到QQ群的桥接插件，支持签名验证和外置配置
+
+# 插件命令
+commands:
+  chatbridge:
+    description: ChatBridge插件主命令
+    usage: |
+      /<command> [reload|test]
+      /chatbridge reload - 重载配置文件
+      /chatbridge test - 发送测试消息
+    permission: chatbridge.use
+    aliases: [ cb, bridge ]
+
+# 权限定义
+permissions:
+  chatbridge.use:
+    description: "使用ChatBridge基本命令"
+    default: true
+  chatbridge.reload:
+    description: "重载ChatBridge配置"
+    default: op
+  chatbridge.test:
+    description: "发送测试消息"
+    default: op
+  chatbridge.*:
+    description: "ChatBridge所有权限"
+    default: op
+    children:
+      chatbridge.use: true
+      chatbridge.reload: true
+      chatbridge.test: true
+
+# 软依赖（可选）
+softdepend: [ Vault, PlaceholderAPI ]
+
+# 加载时机
+load: POSTWORLD
