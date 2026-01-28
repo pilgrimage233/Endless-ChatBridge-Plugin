@@ -1,5 +1,5 @@
 name: ChatBridge
-version: 2.0.0
+version: 2.1
 main: cc.endmc.chatbridge.ChatBridgePlugin
 # 兼容更广泛的版本范围，支持三大插件核心
 api-version: 1.13

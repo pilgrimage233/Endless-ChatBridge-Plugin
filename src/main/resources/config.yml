@@ -7,6 +7,9 @@ api:
   url: "http://localhost:8080/api/v1/pushMessage"
   # 服务器ID（用于标识不同的Minecraft服务器）
   server-id: "1"
+  # 目标QQ群组（多个群组用逗号分隔，例如: "123456789,987654321"）
+  # 留空则不指定目标群组
+  target-groups: ""
 
 # 签名验证配置
 signature:

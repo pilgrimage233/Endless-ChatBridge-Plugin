@@ -3,7 +3,7 @@
 [![CI/CD Pipeline](https://github.com/your-username/chatbridge/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/chatbridge/actions/workflows/ci.yml)
 [![Code Quality](https://github.com/your-username/chatbridge/actions/workflows/code-quality.yml/badge.svg)](https://github.com/your-username/chatbridge/actions/workflows/code-quality.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Java Version](https://img.shields.io/badge/Java-11%2B-blue.svg)](https://www.oracle.com/java/)
+[![Java Version](https://img.shields.io/badge/Java-11-blue.svg)](https://www.oracle.com/java/)
 [![Minecraft Version](https://img.shields.io/badge/Minecraft-1.13.2%2B-green.svg)](https://www.minecraft.net/)
 
 ## 概述
@@ -283,6 +283,14 @@ mvn clean package
 ```
 
 ## 更新日志
+
+### 自动发布说明
+
+本项目使用 GitHub Actions 自动构建和发布：
+
+- **自动构建**: 每次推送到 `main` 分支时自动创建带时间戳的发布版本
+- **手动发布**: 可通过 GitHub Actions 手动触发正式版本发布
+- **下载地址**: [Releases 页面](https://github.com/your-username/chatbridge/releases)
 
 ### v2.0.0
 

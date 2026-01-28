@@ -1,5 +1,7 @@
 package cc.endmc.chatbridge;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -15,7 +17,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
-import java.util.UUID;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 
 /**
@@ -32,6 +35,7 @@ public class ChatBridgePlugin extends JavaPlugin implements Listener {
     private String apiUrl;
     private String serverId;
     private String secretKey;
+    private String targetGroups;
     private boolean enableSignature;
     private int connectTimeout;
     private int requestTimeout;
@@ -39,6 +43,9 @@ public class ChatBridgePlugin extends JavaPlugin implements Listener {
     
     // HTTP客户端
     private HttpClient httpClient;
+
+    // JSON处理器
+    private Gson gson;
     
     @Override
     public void onEnable() {
@@ -59,6 +66,11 @@ public class ChatBridgePlugin extends JavaPlugin implements Listener {
         httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(connectTimeout))
                 .build();
+
+        // 创建Gson实例
+        gson = new GsonBuilder()
+                .disableHtmlEscaping()
+                .create();
         
         // 注册事件监听器
         getServer().getPluginManager().registerEvents(this, this);
@@ -67,6 +79,7 @@ public class ChatBridgePlugin extends JavaPlugin implements Listener {
         getLogger().info("=== ChatBridge插件已启用 ===");
         getLogger().info("API地址: " + apiUrl);
         getLogger().info("服务器ID: " + serverId);
+        getLogger().info("目标群组: " + (targetGroups.isEmpty() ? "未配置" : targetGroups));
         getLogger().info("签名验证: " + (enableSignature ? "启用" : "禁用"));
         getLogger().info("连接超时: " + connectTimeout + "秒");
         getLogger().info("请求超时: " + requestTimeout + "秒");
@@ -88,6 +101,7 @@ public class ChatBridgePlugin extends JavaPlugin implements Listener {
         // API配置
         apiUrl = getConfig().getString("api.url", "http://localhost:8080/api/v1/pushMessage");
         serverId = getConfig().getString("api.server-id", "1");
+        targetGroups = getConfig().getString("api.target-groups", "");
         
         // 签名配置
         enableSignature = getConfig().getBoolean("signature.enabled", true);
@@ -199,12 +213,16 @@ public class ChatBridgePlugin extends JavaPlugin implements Listener {
      * 构建JSON请求体
      */
     private String buildJsonBody(String playerName, String message) {
-        return String.format(
-            "{\"playerName\":\"%s\",\"message\":\"%s\",\"serverId\":\"%s\"}",
-            escapeJson(playerName),
-            escapeJson(message),
-            serverId
-        );
+        Map<String, String> data = new HashMap<>();
+        data.put("playerName", playerName);
+        data.put("message", message);
+        data.put("serverId", serverId);
+
+        if (targetGroups != null && !targetGroups.trim().isEmpty()) {
+            data.put("targetGroups", targetGroups);
+        }
+
+        return gson.toJson(data);
     }
     
     /**
@@ -301,22 +319,6 @@ public class ChatBridgePlugin extends JavaPlugin implements Listener {
                     getLogger().warning("未知错误，状态码: " + statusCode);
             }
         }
-    }
-    
-    /**
-     * 转义JSON字符串中的特殊字符
-     */
-    private String escapeJson(String input) {
-        if (input == null) {
-            return "";
-        }
-        return input.replace("\\", "\\\\")
-                   .replace("\"", "\\\"")
-                   .replace("\n", "\\n")
-                   .replace("\r", "\\r")
-                   .replace("\t", "\\t")
-                   .replace("\b", "\\b")
-                   .replace("\f", "\\f");
     }
     
     /**
