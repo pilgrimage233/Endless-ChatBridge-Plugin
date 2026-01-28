@@ -21,6 +21,8 @@ jobs:
   manual-release:
     runs-on: ubuntu-latest
     name: Create Manual Release
+    permissions:
+      contents: write
     
     steps:
       - name: Checkout code
